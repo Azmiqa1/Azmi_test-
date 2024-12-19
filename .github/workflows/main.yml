@@ -1,0 +1,34 @@
+name: Node.js CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '12.22.9'
+
+      - name: Install dependencies and test
+        run: |
+          npm install
+          npm test
+
+     
+
+      - name: Run deployment commands on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+            cd /azmi
+            git pull origin main
+            npm install
+            npm run build
+          EOF
