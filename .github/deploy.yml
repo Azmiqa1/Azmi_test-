@@ -1,0 +1,57 @@
+name: Deploy JavaScript Code to Server
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04.5  
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '12.22.9'  
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Run tests
+        run: |
+          npm test  
+
+      - name: Deploy to server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}  
+        run: |
+          
+          echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          
+          ssh-keyscan your_server_ip >> ~/.ssh/known_hosts
+
+          
+          ssh -o StrictHostKeyChecking=no root@168.119.238.20 << 'EOF'
+          
+            cd /path/to/azmi
+
+            
+            git pull origin main  
+
+            
+            npm install
+
+         
+            
+            pm2 start server.js --name "azmi-app"    
+
+             pm2 save
+             
+          EOF
